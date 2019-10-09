@@ -6,6 +6,7 @@
 #include <map>
 #include <cmath>
 #include <set>
+#include <math.h>
 using namespace std;
 struct Node{
     double x;
@@ -94,6 +95,30 @@ void Print_Dist_Graph(vector <Node> G, int number) {
     }
     fout.close();
 }
+const int n = 100;
+set < pair< int, int> > set_grid[6 * n + 1][6 * n + 1];
+
+void insert_in_set(int x, int y, int k, int i, int j, int ind, double _ind) {
+    if (i - k > 0 && j - ind >= 0) {
+        set_grid[i][j].insert(make_pair(i - k, j - ind));
+        set_grid[i][j].insert(make_pair(i - k - 1, j - ind));
+    }
+    if (i + k < 6 * n + 1 && j - ind >= 0) {
+        set_grid[i][j].insert(make_pair(i + k, j - ind));
+        set_grid[i][j].insert(make_pair(i + k + 1, j - ind));
+    }
+    if (i - k >= 0 && j + ind < 6 * n + 1) {
+        set_grid[i][j].insert(make_pair(i - k, j + ind));
+        set_grid[i][j].insert(make_pair(i - k - 1, j + ind));
+    }
+    if (i + k < 6 * n + 1 && j + ind < 6 * n + 1) {
+        set_grid[i][j].insert(make_pair(i + k, j + ind));
+        set_grid[i][j].insert(make_pair(i + k + 1, j + ind));
+    }
+    if (abs(ind - _ind) < 0.000001) {
+        
+    }
+}
 
 int main() {
     vector <Node> U1;
@@ -157,23 +182,32 @@ int main() {
         cout << it->first << " " << it->second.first << " " << it->second.second << endl;
     }
     int cnt = 0;
-    const int n = 100;
-    vector <pair <int, int> > grid1[4*n][4*n];
-    for (int i = 0; i < 4 * n; ++i) {
-        for (int j = 0; j < 4 * n; j++) {
-            double x1, y1, x2, y2, x3, y3, x4, y4;
-            double l = j / n;
-
+    for (int i = 0; i < 6 * n; ++i) {
+        for (int j = 0; j < 6 * n; j++) {
+            double h = 0.01;
+            double x1, y1, x2, y2;
+            x1 = i*h;
+            y1 = j*h;
+            x2 = x1 + h;
+            y2 = y1 + h;
+            for (int k = 0; k < 100; ++k) {
+                double _ind = sqrt(1 / (h*h) - k*k);
+                int ind = floor(_ind);
+                insert_in_set(0, 0, k, i, j, ind, _ind);
+                insert_in_set(0, 1, k, i, j, ind, _ind);
+                insert_in_set(1, 0, k, i, j, ind, _ind);
+                insert_in_set(1, 1, k, i, j, ind, _ind);
+            }
         }
     }
     for (set < pair< int, pair <double, double > > >::iterator it = angles.begin(); it != angles.end(); ++it) {
         vector <Node> G;
-        vector <Node> grid[4*n][4*n];
+        vector <Node> grid[6*n+1][6*n+1]; // Сделать 2mn, где m - сколько сумм минковского
         for (int i = 0; i < V0.size(); ++i) {
             G.push_back(V0[i]);
-            int index_i = (V0[i].x + 2) * n;
-            int index_j = (V0[i].y + 2) * n;
-            grid[index_i][index_j].push_back(V0[i]);
+              int index_i = (V0[i].x + 3) * n;
+              int index_j = (V0[i].y + 3) * n;
+              grid[index_i][index_j].push_back(V0[i]);
         }
         for (int i = 0; i < V0.size(); ++i) {
             if (abs(V0[i].x) > 0.000001 || abs(V0[i].y) > 0.000001) {
@@ -184,14 +218,14 @@ int main() {
                 }
                 if (d > 0.000000000001) {
                     G.push_back(h);
-                    int index_i = (h.x + 2) * n;
-                    int index_j = (h.y + 2) * n;
+                    int index_i = (h.x + 3) * n;
+                    int index_j = (h.y + 3) * n;
                     grid[index_i][index_j].push_back(V0[i]);
                 }
             }
         }
         int count = 0, index_v = 0, index_u = 0;
-    /*/    for (int i = 0; i < G.size(); ++i) {
+        for (int i = 0; i < G.size(); ++i) {
             index_v = 0;
             index_u = index_u + 1;
             for (int j = 0; j < G.size(); ++j) {
@@ -201,8 +235,8 @@ int main() {
                         count++;
                 }
             }
-        }/*/
-        //cout << count << " " << G.size() << endl;
+        }
+        cout << count << " " << G.size() << endl;
         if (count >= 26750) {
             cnt++;
             cout << cnt;
